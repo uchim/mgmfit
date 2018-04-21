@@ -1,0 +1,40 @@
+#事前に、コンサルタント単位の技術要素、売上、コンサルレベルをマトリクスとし、ファイル名data.txtで作業ディレクトリに格納しています
+# mgmfig によるグラフ構造の表示
+
+setwd("ディレクトリを指定")
+
+library(mgm)
+library(qgraph)
+
+data <- read.table("data.txt", sep = "\t", header= FALSE)
+data <- apply(data, 2, as.integer)
+dif <-  read.table("dif.txt", sep = "\t", header= FALSE)
+data_colnames <- as.matrix(dif[1,])
+type <- as.matrix(dif[2,])
+lev <- apply(dif[3,], 1, as.integer)
+
+# fit <- mgmfit(data, type, lev, d = 2, lambda.sel = "EBIC")
+fit <- mgmfit(data, type, lev, d = 1)
+
+groups_typeV <- list("Gaussian"=which(type=='g'),
+                     "Categorical"=which(type=='c'),
+                     "Poisson"=which(type=='p'))
+
+group_col <- c("#ED3939", "#53B0CF", "#72CF53")
+
+# JPEGに出力する
+jpeg("sample.jpg", height=2*1700, width=2*2000, unit='px')
+Q0 <- qgraph(fit$wadj, 
+       vsize=3.5, 
+       esize=2, 
+       layout="spring", 
+       edge.color = fit$edgecolor, 
+       color=group_col,
+       border.width=1.5,
+       border.color="black",
+       groups=groups_typeV,
+       nodeNames=data_colnames,
+       legend=TRUE, 
+       legend.mode="style2",
+       legend.cex=1.5)
+dev.off()
